@@ -1,6 +1,6 @@
 import messaging from '@react-native-firebase/messaging';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {Alert} from 'react-native';
+import PushNotification from 'react-native-push-notification';
 
 export async function requestUserPermission() {
   // console.log('requestUserPermission');
@@ -16,7 +16,7 @@ export async function requestUserPermission() {
 }
 
 const GetFCMToken = async () => {
-  const fcmToken = await AsyncStorage.getItem('fcmToken');
+  const fcmToken = await AsyncStorage.getItem('cobra_fcmT');
   console.log('fcmToken', fcmToken);
   if (!fcmToken) {
     try {
@@ -24,7 +24,7 @@ const GetFCMToken = async () => {
       console.log('token', token);
       if (token) {
         console.log('FCM Token:', token);
-        AsyncStorage.setItem('fcmToken', token);
+        AsyncStorage.setItem('cobra_fcmT', token);
       } else {
         console.log('No token received');
       }
@@ -54,6 +54,11 @@ export const NotificationListener = () => {
     });
 
   messaging().onMessage(async remoteMessage => {
-    console.log('FCM Message Data:', remoteMessage.notification);
+    console.log('A new FCM message arrived!', JSON.stringify(remoteMessage));
+    PushNotification.localNotification({
+      title: remoteMessage.notification.title,
+      message: remoteMessage.notification.body,
+      channelId: 'your-channel-id', // you also have to setup this
+    });
   });
 };
