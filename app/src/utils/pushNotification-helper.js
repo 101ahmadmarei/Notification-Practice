@@ -1,6 +1,9 @@
 import messaging from '@react-native-firebase/messaging';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import PushNotification from 'react-native-push-notification';
+import {createNavigationContainerRef} from '@react-navigation/native';
+
+export const navigationRef = createNavigationContainerRef();
 
 export async function requestUserPermission() {
   // console.log('requestUserPermission');
@@ -35,24 +38,6 @@ const GetFCMToken = async () => {
 };
 
 export const NotificationListener = () => {
-  messaging().onNotificationOpenedApp(remoteMessage => {
-    console.log(
-      'Notification caused app to open from background state:',
-      remoteMessage.notification,
-    );
-  });
-
-  messaging()
-    .getInitialNotification()
-    .then(remoteMessage => {
-      if (remoteMessage) {
-        console.log(
-          'Notification caused app to open from quit state:',
-          remoteMessage.notification,
-        );
-      }
-    });
-
   messaging().onMessage(async remoteMessage => {
     console.log('A new FCM message arrived!', JSON.stringify(remoteMessage));
     PushNotification.localNotification({

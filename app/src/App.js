@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
+
 // ... (your other imports)
 
 import {Text, View, StyleSheet} from 'react-native';
@@ -11,6 +12,7 @@ import {
 import PushNotification from 'react-native-push-notification';
 import Home from './pages/Home';
 import Goals from './pages/Goals';
+import messaging from '@react-native-firebase/messaging';
 
 PushNotification.createChannel(
   {
@@ -24,15 +26,47 @@ PushNotification.createChannel(
   created => console.log(`createChannel returned '${created}'`), // Callback that lets you know whether the channel was created successfully
 );
 const Stack = createNativeStackNavigator();
+const navigationRef = React.createRef();
+
+function navigate(name, params) {
+  navigationRef.current?.navigate(name, params);
+}
 
 function App() {
   useEffect(() => {
-    requestUserPermission();
+    // requestUserPermission();
     NotificationListener();
   }, []);
 
+  useEffect(() => {
+    const unsubscribeOnNotificationOpenedApp =
+      messaging().onNotificationOpenedApp(remoteMessage => {
+        const navigateTo = remoteMessage.data.navigateTo;
+        console.log('COBRAAAAAAAAA', navigateTo);
+        if (navigateTo) {
+          navigate(navigateTo); // using the navigate function defined above
+        }
+      });
+    messaging()
+      .getInitialNotification()
+      .then(remoteMessage => {
+        if (remoteMessage) {
+          const navigateTo = remoteMessage.data.navigateTo;
+          console.log('Aliiiiiiiiiiiii', navigateTo);
+          console.log('remoteMessage', remoteMessage);
+          if (navigateTo) {
+            navigate(navigateTo);
+          }
+        }
+      });
+    return () => {
+      unsubscribeOnMessage();
+      unsubscribeOnNotificationOpenedApp();
+    };
+  }, []);
+
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef}>
       <Stack.Navigator initialRouteName="Home">
         <Stack.Screen
           name="Home"
@@ -50,19 +84,5 @@ function App() {
 }
 
 // ... (the rest of your code)
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'purple',
-  },
-  notificationText: {
-    fontSize: 24,
-    color: 'white',
-    textAlign: 'center',
-  },
-});
 
 export default App;
